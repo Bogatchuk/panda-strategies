@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panda Trades · стратегии</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg: var(--tg-theme-bg-color, #ffffff);
+  --bg2: var(--tg-theme-secondary-bg-color, #f2f3f5);
+  --card: var(--tg-theme-section-bg-color, var(--tg-theme-bg-color, #ffffff));
+  --text: var(--tg-theme-text-color, #16181c);
+  --hint: var(--tg-theme-hint-color, #8a8f98);
+  --sub: var(--tg-theme-subtitle-text-color, var(--tg-theme-hint-color, #6b7079));
+  --acc: var(--tg-theme-button-color, #2f80ed);
+  --acc-t: var(--tg-theme-button-text-color, #ffffff);
+  --link: var(--tg-theme-link-color, #2f80ed);
+  --head: var(--tg-theme-section-header-text-color, var(--tg-theme-hint-color, #6b7079));
+  --sep: color-mix(in srgb, var(--hint) 22%, transparent);
+  --pos: #22a35a; --neg: #e5534b; --mid: #d29922;
+  --r: 16px;
+  --top: calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg2);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{padding-top:var(--top)}
+.wrap{max-width:860px;margin:0 auto;padding:0 14px 40px}
+.nav{position:sticky;top:var(--top);z-index:5;background:color-mix(in srgb,var(--bg2) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);margin:0 -14px;padding:10px 14px 8px}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:0;border-radius:999px;padding:7px 13px;font:600 13px/1 inherit;background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--acc);color:var(--acc-t)}
+.hero{padding:18px 4px 6px}
+.brand{font:600 12px/1 inherit;letter-spacing:.08em;text-transform:uppercase;color:var(--hint)}
+h1{font-size:28px;line-height:1.15;margin:8px 0 8px;letter-spacing:-.01em}
+.lead{font-size:16px;color:var(--text);margin:0 0 8px}
+.meta{font-size:12.5px;color:var(--hint)}
+.seg{display:flex;gap:4px;background:var(--card);border-radius:12px;padding:4px;margin:14px 0 12px;overflow-x:auto}
+.seg button{flex:1 0 auto;min-width:56px;border:0;border-radius:9px;padding:8px 10px;background:transparent;color:var(--text);font:600 14px/1 inherit;cursor:pointer}
+.seg button.on{background:var(--acc);color:var(--acc-t)}
+.seg small{font-weight:500;opacity:.75}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:520px){.grid{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--card);border-radius:14px;padding:12px 12px 11px}
+.kpi b{display:block;font-size:21px;line-height:1.15;letter-spacing:-.01em}
+.kpi>span{display:block;font-size:12px;color:var(--hint);margin-top:3px}
+.kpi .badge{display:inline-block;margin-right:4px}
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin-top:12px}
+h2{font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--head);margin:22px 4px 0}
+.card h3{margin:0 0 6px;font-size:16px}
+.p{margin:0;color:var(--text)}
+.muted{color:var(--hint);font-size:13px}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.badge{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600}
+.b-high{background:color-mix(in srgb,var(--pos) 18%,transparent);color:var(--pos)}
+.b-mid{background:color-mix(in srgb,var(--mid) 20%,transparent);color:var(--mid)}
+.b-low,.b-none{background:color-mix(in srgb,var(--neg) 16%,transparent);color:var(--neg)}
+.mod{border-top:1px solid var(--sep);padding:12px 0}
+.mod:first-of-type{border-top:0;padding-top:2px}
+.mod h4{margin:0 0 6px;font-size:15px}
+.row{display:grid;grid-template-columns:64px 1fr;gap:8px;font-size:14px;margin-top:4px}
+.row i{font-style:normal;color:var(--hint);font-size:12.5px;padding-top:1px}
+.chart{width:100%;height:auto;display:block}
+.setup svg{border-radius:12px}
+.setup .cap{margin-top:10px}
+.bars .bar{display:grid;grid-template-columns:54px 1fr 74px;align-items:center;gap:10px;margin:9px 0;font-size:14px}
+.track{height:10px;border-radius:6px;background:color-mix(in srgb,var(--hint) 14%,transparent);position:relative;overflow:hidden}
+.fill{position:absolute;top:0;bottom:0;border-radius:6px}
+.bar .v{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+.tbl th{font-size:11.5px;font-weight:600;color:var(--hint);text-align:right;padding:6px 6px;border-bottom:1px solid var(--sep)}
+.tbl td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--sep)}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl tr.best td{font-weight:700}
+.tbl tr:last-child td{border-bottom:0}
+.scroll{overflow-x:auto}
+.combo{display:grid;gap:10px}
+.cb{background:var(--card);border-radius:var(--r);padding:14px 16px;cursor:pointer;border:2px solid transparent}
+.cb.on{border-color:var(--acc)}
+.cb .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.cb .t b{font-size:17px}
+.cb .s{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-size:13.5px;color:var(--sub)}
+.foot{font-size:12px;color:var(--hint);margin:22px 4px 0}
+.foot a{color:var(--link);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav"><div class="chips" id="chips"></div></div>
+  <div id="page"></div>
+  <p class="foot" id="foot"></p>
+</div>
+<script src="data.js"></script>
+<script>
+const tg = window.Telegram && Telegram.WebApp;
+const D = window.DATA;
+const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstChild; };
+const esc = (s) => String(s ?? '').replace(/[&<>]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const sg = (v, d = 0) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(d);
+const cls = (v) => v > 0 ? 'pos' : v < 0 ? 'neg' : '';
+const bcls = (l) => l === 'высокая' ? 'b-high' : l === 'средняя' ? 'b-mid' : 'b-low';
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function setup() {
+  if (!tg) return;
+  try {
+    tg.ready(); tg.expand();
+    const desk = ['tdesktop', 'macos', 'weba', 'webk', 'web', 'unigram'].includes(tg.platform);
+    if (desk && tg.isVersionAtLeast && tg.isVersionAtLeast('8.0') && tg.requestFullscreen) tg.requestFullscreen();
+    const paint = () => { try { tg.setHeaderColor('secondary_bg_color'); tg.setBackgroundColor('secondary_bg_color'); if (tg.setBottomBarColor) tg.setBottomBarColor('secondary_bg_color'); } catch (e) {} };
+    paint(); tg.onEvent('themeChanged', () => { paint(); render(); });
+  } catch (e) {}
+}
+
+function chart(curve, stamp) {
+  const W = Math.round(Math.max(340, Math.min(800, (document.querySelector('.wrap') || document.body).clientWidth - 60))), H = Math.round(W * 0.42 + 40), pl = 44, pr = 12, pt = 14, pb = 26;
+  const xs = curve.map((p) => p[0]), ys = curve.map((p) => p[1]);
+  const x0 = xs[0], x1 = xs[xs.length - 1], y0 = Math.min(0, ...ys), y1 = Math.max(0, ...ys) || 1;
+  const X = (x) => pl + (x - x0) / (x1 - x0 || 1) * (W - pl - pr), Y = (y) => pt + (1 - (y - y0) / (y1 - y0 || 1)) * (H - pt - pb);
+  const acc = css('--tg-theme-button-color') || '#2f80ed', hint = css('--tg-theme-hint-color') || '#8a8f98';
+  const line = curve.map((p, i) => (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' ');
+  const area = line + ` L${X(x1).toFixed(1)} ${Y(y0)} L${X(x0).toFixed(1)} ${Y(y0)} Z`;
+  const step = Math.max(10, Math.pow(10, Math.floor(Math.log10((y1 - y0) / 3))) * ([1, 2, 5].find((m) => (y1 - y0) / (Math.pow(10, Math.floor(Math.log10((y1 - y0) / 3))) * m) <= 5) || 10));
+  let grid = '';
+  for (let v = Math.ceil(y0 / step) * step; v <= y1; v += step)
+    grid += `<line x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="${hint}" stroke-opacity=".18"/><text x="${pl - 8}" y="${Y(v) + 4}" text-anchor="end" font-size="12" fill="${hint}">${v}R</text>`;
+  let yrs = '';
+  for (let y = new Date(x0 * 864e5).getUTCFullYear() + 1; ; y++) {
+    const t = Date.UTC(y, 0, 1) / 864e5; if (t > x1) break;
+    yrs += `<text x="${X(t)}" y="${H - 6}" text-anchor="middle" font-size="12" fill="${hint}">${y}</text>`;
+  }
+  const yStart = X(Math.max(stamp, x0));
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Кривая прибыли">
+    <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${acc}" stop-opacity=".28"/><stop offset="1" stop-color="${acc}" stop-opacity="0"/></linearGradient></defs>
+    <rect x="${yStart}" y="${pt}" width="${W - pr - yStart}" height="${H - pt - pb}" fill="${hint}" fill-opacity=".08"/>
+    <text x="${W - pr - 6}" y="${pt + 14}" text-anchor="end" font-size="12" fill="${hint}">последний год</text>
+    ${grid}${yrs}<path d="${area}" fill="url(#g)"/><path d="${line}" fill="none" stroke="${acc}" stroke-width="2.4" stroke-linejoin="round"/></svg>`;
+}
+
+function candles(d) {
+  const W = Math.round(Math.max(340, Math.min(800, (document.querySelector('.wrap') || document.body).clientWidth - 60))), H = Math.round(W * (W < 520 ? 0.7 : 0.52));
+  const pl = 8, pr = 52, pt = 30, pb = 24, n = d.c.length;
+  const lo = Math.min(...d.c.map((k) => k[2])), hi = Math.max(...d.c.map((k) => k[1])), pad = (hi - lo) * 0.12;
+  const y0 = lo - pad, y1 = hi + pad, cw = (W - pl - pr) / n;
+  const X = (i) => pl + (i + 0.5) * cw, Y = (v) => pt + (1 - (v - y0) / (y1 - y0)) * (H - pt - pb);
+  const hint = css('--tg-theme-hint-color') || '#8a8f98', acc = css('--tg-theme-button-color') || '#2f80ed';
+  const up = '#22a35a', dn = '#e5534b', gold = '#d29922';
+  let g = '';
+  const fmt = (v) => v >= 1000 ? Math.round(v).toLocaleString('ru-RU') : v >= 10 ? v.toFixed(1) : v.toPrecision(4);
+  for (let k = 0; k <= 4; k++) { const v = y0 + (y1 - y0) * (0.1 + 0.8 * k / 4); g += `<line x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="${hint}" stroke-opacity=".15"/><text x="${W - pr + 6}" y="${Y(v) + 4}" font-size="11" fill="${hint}">${fmt(v)}</text>`; }
+  g += `<rect x="${X(d.a) - cw / 2}" y="${pt}" width="${(d.b - d.a + 1) * cw}" height="${H - pt - pb}" fill="${acc}" fill-opacity=".12"/>`;
+  d.c.forEach(([o, h, l, c], i) => { const col = c >= o ? up : dn, x = X(i), bw = Math.max(1.5, cw * 0.62);
+    g += `<line x1="${x}" x2="${x}" y1="${Y(h)}" y2="${Y(l)}" stroke="${col}" stroke-width="1.1"/><rect x="${x - bw / 2}" y="${Y(Math.max(o, c))}" width="${bw}" height="${Math.max(1, Math.abs(Y(o) - Y(c)))}" fill="${col}"/>`; });
+  g += `<line x1="${X(d.a)}" x2="${X(d.b)}" y1="${Y(d.E)}" y2="${Y(d.E)}" stroke="${gold}" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  const card = css('--tg-theme-section-bg-color') || css('--tg-theme-bg-color') || '#ffffff';
+  const lab = (x, y, t, col, above, dx) => { const w = t.length * 8 + 16, yy = Math.min(Math.max(above ? Y(y) - 52 : Y(y) + 52, pt + 12), H - pb - 12), tx = Math.min(Math.max(x + dx, pl + w / 2), W - pr - w / 2);
+    return `<line x1="${x}" y1="${Y(y)}" x2="${tx}" y2="${yy}" stroke="${col}" stroke-width="1.5"/><rect x="${tx - w / 2}" y="${yy - 12}" width="${w}" height="24" rx="12" fill="${card}" stroke="${col}" stroke-width="1.5"/><text x="${tx}" y="${yy + 4.5}" text-anchor="middle" font-size="12.5" font-weight="700" fill="${col}">${t}</text>`; };
+  g += lab(X(d.a), d.E, 'ВХОД · ' + (d.side > 0 ? 'ЛОНГ' : 'ШОРТ'), gold, d.side < 0, -60);
+  g += lab(X(d.b), d.X, 'ВЫХОД · +' + d.r.toFixed(1) + 'R', up, d.side > 0, -40);
+  const step = Math.max(1, Math.round(n / (W < 520 ? 3 : 5)));
+  for (let i = Math.round(step / 2); i < n; i += step) g += `<text x="${X(i)}" y="${H - 6}" text-anchor="middle" font-size="11" fill="${hint}">${d.t[i]}</text>`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Пример сделки на графике">${g}</svg>`;
+}
+
+function kpis(m) {
+  return `<div class="grid">
+    <div class="kpi"><b class="${cls(m.R)}">${sg(m.R)}R</b><span>прибыль за год · ${sg(m.R)}% депозита</span></div>
+    <div class="kpi"><b>${m.wr.toFixed(0)}%</b><span>сделок в плюс</span></div>
+    <div class="kpi"><b>${m.dd.toFixed(0)}%</b><span>макс. просадка депозита</span></div>
+    <div class="kpi"><b>${m.mpos} из ${m.mn}</b><span>месяцев в плюсе</span></div>
+    <div class="kpi"><b>${m.pd}</b><span>сделок в день, 5 монет</span></div>
+    <div class="kpi"><b>${m.stab}</b><span><span class="badge ${bcls(m.lab)}">${esc(m.lab)}</span> стабильность</span></div></div>`;
+}
+
+function bars(items, max) {
+  return `<div class="bars">${items.map(([k, v, sub]) => {
+    const w = Math.min(100, Math.abs(v) / (max || 1) * 100), col = v >= 0 ? 'var(--pos)' : 'var(--neg)';
+    return `<div class="bar"><span>${esc(k)}</span><div class="track"><div class="fill" style="left:0;width:${w}%;background:${col}"></div></div><span class="v ${cls(v)}">${sg(v)}R${sub ? `<br><small class="muted">${sub}</small>` : ''}</span></div>`;
+  }).join('')}</div>`;
+}
+
+let cur = null, tfSel = null, comboSel = 'DUO';
+function chips() {
+  const c = document.getElementById('chips'); c.innerHTML = '';
+  [...D.order, 'COMBO'].forEach((k) => {
+    const b = $(`<button class="chip${k === cur ? ' on' : ''}">${k === 'COMBO' ? 'Комбо' : esc(D.strats[k].name)}</button>`);
+    b.onclick = () => go(k); c.appendChild(b);
+  });
+  const on = c.querySelector('.on'); if (on) on.scrollIntoView({inline: 'center', block: 'nearest'});
+}
+
+function strat(s) {
+  const S = D.strats[s], tf = tfSel && S.tfs[tfSel] ? tfSel : S.best, m = S.tfs[tf];
+  const seg = S.order.map((t) => `<button data-tf="${t}" class="${t === tf ? 'on' : ''}">${t === S.best ? '★ ' : ''}${t}</button>`).join('');
+  let mods = '';
+  if (Array.isArray(S.mods)) mods = S.mods.map((x) => `<div class="mod"><h4>${esc(x.name)}</h4><div class="row"><i>Вход</i><span>${esc(x.entry)}</span></div>${x.exit ? `<div class="row"><i>Выход</i><span>${esc(x.exit)}</span></div>` : ''}${x.filt ? `<div class="row"><i>Фильтры</i><span class="muted">${esc(x.filt)}</span></div>` : ''}</div>`).join('');
+  else { const set = S.mods[tf] || S.mods[S.best]; mods = `<p class="muted" style="margin:0 0 6px">Модули режима ${S.mods[tf] ? tf : S.best}</p>` + set.map((x) => `<div class="mod"><h4>${esc(x.name)}</h4><div class="row"><i>Вход</i><span>${esc(x.entry)}</span></div><div class="row"><i>Выход</i><span>${esc(x.exit)}</span></div></div>`).join(''); }
+  const coins = Object.entries(m.coins); const cmax = Math.max(...coins.map(([, v]) => Math.abs(v.R)), 1);
+  const yrs = Object.entries(m.years); const ymax = Math.max(...yrs.map(([, v]) => Math.abs(v)), 1);
+  const rows = S.order.map((t) => { const x = S.tfs[t]; return `<tr class="${t === S.best ? 'best' : ''}"><td>${t === S.best ? '★ ' : ''}${t}</td><td>${x.pd}</td><td>${x.wr.toFixed(0)}%</td><td class="${cls(x.R)}">${sg(x.R)}R</td><td>${x.dd.toFixed(0)}%</td><td>${x.mpos}/${x.mn}</td><td><span class="badge ${bcls(x.lab)}">${x.stab}</span></td></tr>`; }).join('');
+  const P = document.getElementById('page');
+  P.innerHTML = `
+    <div class="hero"><div class="brand">Panda Trades · стратегия</div><h1>${esc(S.name)}</h1><p class="lead">${esc(S.one)}</p>
+      <div class="meta">Скрипт TradingView «${esc(S.tv)}»</div></div>
+    <div class="seg">${seg}</div>
+    ${kpis(m)}
+    <div class="card"><h3>Кривая прибыли · ${tf}</h3><div class="muted" style="margin-bottom:8px">Накопленный результат в R на 5 монетах с 2022 года, с комиссией ${D.fee}</div>${chart(m.curve, D.y0)}</div>
+    <h2>Как работает</h2><div class="card"><p class="p">${esc(S.how)}</p></div>
+    <h2>Условия входа и выхода</h2><div class="card">${mods}${S.modnote ? `<p class="muted" style="margin:10px 0 0">${esc(S.modnote)}</p>` : ''}</div>
+    <h2>Пример сделки</h2><div class="card setup">${candles(S.setup.chart)}<div class="cap"><b>${esc(S.setup.title)}</b><p class="p muted" style="margin-top:4px">${esc(S.setup.text)}</p></div></div>
+    <h2>Монеты за последний год · ${tf}</h2><div class="card">${bars(coins.map(([c, v]) => [c, v.R, `WR ${v.wr.toFixed(0)}%`]), cmax)}</div>
+    <h2>По годам · ${tf}</h2><div class="card">${bars(yrs.map(([y, v]) => [y, v]), ymax)}<p class="muted" style="margin:6px 0 0">2026 — по 14.11</p></div>
+    <h2>Все таймфреймы</h2><div class="card scroll"><table class="tbl"><thead><tr><th>ТФ</th><th>сд./день</th><th>WR</th><th>за год</th><th>просадка</th><th>мес. +</th><th>стаб.</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  P.querySelectorAll('.seg button').forEach((b) => b.onclick = () => { tfSel = b.dataset.tf; strat(s); haptic(); });
+}
+
+function combo() {
+  const C = D.combo, k = comboSel, m = C.combos[k];
+  const cards = Object.entries(C.combos).map(([key, c]) => `<div class="cb${key === k ? ' on' : ''}" data-k="${key}"><div class="t"><b>${esc(c.name)}</b><span class="${cls(c.R)}" style="font-weight:700">${sg(c.R)}R</span></div><div class="muted">${esc(c.txt)}</div>
+    <div class="s"><span>WR ${c.wr.toFixed(0)}%</span><span>просадка ${c.dd.toFixed(0)}%</span><span>${c.mpos}/${c.mn} мес. в плюсе</span><span><span class="badge ${bcls(c.lab)}">стаб. ${c.stab}</span></span></div></div>`).join('');
+  const blocks = C.blocks.map((b) => `<div class="mod"><h4>${esc(b.unit)}</h4><div class="muted">${esc(b.role)}</div><div class="s" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;font-size:13.5px"><span class="${cls(b.R)}">${sg(b.R)}R за год</span><span>WR ${b.wr.toFixed(0)}%</span><span><span class="badge ${bcls(b.lab)}">стаб. ${b.stab}</span></span></div></div>`).join('');
+  const yrs = Object.entries(m.years), ymax = Math.max(...yrs.map(([, v]) => Math.abs(v)), 1);
+  document.getElementById('page').innerHTML = `
+    <div class="hero"><div class="brand">Panda Trades · комбо</div><h1>Duo · Trio · Max</h1><p class="lead">Набор блоков «стратегия · ТФ», каждый в своих лучших условиях. Блоки торгуют независимо: у каждого своя позиция, общий блок приходит один раз.</p></div>
+    <div class="combo">${cards}</div>
+    <div class="card"><h3>Кривая прибыли · ${esc(m.name)}</h3><div class="muted" style="margin-bottom:8px">${esc(m.txt)} · 5 монет · комиссия ${D.fee}</div>${chart(m.curve, D.y0)}</div>
+    <h2>По годам · ${esc(m.name)}</h2><div class="card">${bars(yrs.map(([y, v]) => [y, v]), ymax)}<p class="muted" style="margin:6px 0 0">2026 — по 14.11</p></div>
+    <h2>Блоки</h2><div class="card">${blocks}</div>
+    <h2>Что выбрать</h2><div class="card"><p class="p"><b>Panda Duo</b> — самая надёжная: маленькая просадка, около сделки в день. <b>Panda Max</b> — больше всего денег, но просадка глубже. <b>Panda Trio</b> — Volume Spike после комиссии почти в ноль, поэтому Trio лишь немного лучше Duo по деньгам при большей просадке.</p></div>`;
+  document.querySelectorAll('.cb').forEach((el) => el.onclick = () => { comboSel = el.dataset.k; combo(); haptic(); });
+}
+
+function haptic() { try { tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch (e) {} }
+function render() { chips(); cur === 'COMBO' ? combo() : strat(cur); }
+function go(k) { if (k !== cur) { tfSel = null; window.scrollTo(0, 0); } cur = k; history.replaceState(null, '', '?s=' + k + location.hash); render(); haptic(); }
+
+const q = new URLSearchParams(location.search).get('s');
+cur = q && (D.strats[q] || q === 'COMBO') ? q : D.order[0];
+document.getElementById('foot').innerHTML = `Бэктест на BTC, ETH, SOL, HYPE, ZEC (фьючерсы Binance). Последний год — 14.11.2025–14.11.2026, история — с 2022. Риск 1% на сделку: 1R = 1% депозита. Комиссия ${D.fee} (вход лимиткой + выход по рынку) уже вычтена; в боте статистика считается с вашей комиссией. Стабильность = меньшее из «прибыль/просадка» за год и за историю × доля месяцев в плюсе. Это бэктест, не гарантия. · <a href="https://t.me/OfficialPandaTrades">@OfficialPandaTrades</a> · обновлено ${D.updated}`;
+setup(); render();
+let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 150); });
+</script>
+</body>
+</html>
